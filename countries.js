@@ -1,5 +1,7 @@
 let myGlobe;
 let btn = document.getElementById("btn");
+let alreadyClicked = false;
+let colorCodes;
 
 btn.onclick = () => {
   myGlobe
@@ -7,11 +9,11 @@ btn.onclick = () => {
       d.cases ? 0.25 : Math.random() / 1000 + 0.001
     )
     .hexPolygonColor(({ properties: d }) => {
-      let color = `#${Math.round(Math.random() * Math.pow(2, 24))
-        .toString(16)
-        .padStart(6, "0")}${percentToHex(d.cases ? 100 : 20)}`;
+      let color = colorCodes[d.ISO_A2];
+      color = `${color.slice(0, -2)}${percentToHex(d.cases ? 100 : 20)}`;
       return color;
     });
+  if (!alreadyClicked) alreadyClicked = true;
 };
 
 const percentToHex = (p) => {
@@ -20,6 +22,12 @@ const percentToHex = (p) => {
   const hexValue = intValue.toString(16); // get hexadecimal representation
   return hexValue.padStart(2, "0").toUpperCase(); // format with leading 0 and upper case characters
 };
+
+fetch("./datasets/colors.json")
+  .then((res) => res.json())
+  .then((colors) => {
+    colorCodes = colors;
+  });
 
 fetch("./datasets/countries_covid.geojson")
   .then((res) => res.json())
@@ -34,10 +42,8 @@ fetch("./datasets/countries_covid.geojson")
       //     d.cases ? 0.25 : Math.random() / 1000 + 0.001
       //   )
       .hexPolygonColor(({ properties: d }) => {
-        let color = `#${Math.round(Math.random() * Math.pow(2, 24))
-          .toString(16)
-          .padStart(6, "0")}${percentToHex(20)}`;
-        return color;
+        // console.log(colorCodes[d.ISO_A2]);
+        return colorCodes[d.ISO_A2];
       })
       .hexPolygonLabel(
         ({ properties: d }) => `
