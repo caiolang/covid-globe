@@ -1,6 +1,5 @@
 let myGlobe;
 let btn = document.getElementById("btn");
-let alreadyClicked = false;
 let colorCodes;
 
 btn.onclick = () => {
@@ -13,7 +12,6 @@ btn.onclick = () => {
       color = `${color.slice(0, -2)}${percentToHex(d.cases ? 100 : 20)}`;
       return color;
     });
-  if (!alreadyClicked) alreadyClicked = true;
 };
 
 const percentToHex = (p) => {
