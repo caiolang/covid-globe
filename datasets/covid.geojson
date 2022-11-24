@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "ISO_A2": "BR",
+        "cases": [30168],
+        "acc_cases": [4123000],
+        "deaths": [682],
+        "acc_deaths": [126203],
+        "start_month": "2020-09"
+      }
+    }
+  ],
+  "bbox": [-180, -90, 180, 83.64513]
+}
