@@ -8,11 +8,11 @@ btn.onclick = () => {
     //   d.cases ? 0.25 : Math.random() / 1000 + 0.001
     // )
     .hexPolygonAltitude(
-      ({properties: d}) => Math.log10(d.NEW_CASES + 1)/ Math.log10(100000)
+      ({properties: d}) => Math.log10(d.NEW_CASES + 1)/ Math.log10(100000000) + 0.01
     )
     .hexPolygonColor(({ properties: d }) => {
       let color = colorCodes[d.ISO_A2];
-      color = `${color.slice(0, -2)}${percentToHex(d.cases ? 100 : 20)}`;
+      color = `${color.slice(0, -2)}${percentToHex(d.NEW_CASES ? 100 : 20)}`;
       return color;
     });
 };
