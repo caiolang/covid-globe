@@ -54,7 +54,7 @@ fetch("./datasets/countries_covid.geojson")
           myGlobe = Globe()
             .globeImageUrl("//unpkg.com/three-globe/example/img/earth-dark.jpg")
             .hexPolygonsData(countries.features)
-            .hexPolygonResolution(2)
+            .hexPolygonResolution(3)
             .hexPolygonMargin(0.3)
             .hexPolygonsTransitionDuration(500)
             .hexPolygonColor(({ properties: d }) => {
