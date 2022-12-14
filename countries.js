@@ -31,21 +31,25 @@ fetch("./datasets/colors.json")
     colorCodes = colors;
   });
 
+  //TODO: Maybe change this to a more interpretable one
+function altituteConversion(altitude) {
+  return Math.log10(altitude + 1)/ Math.log10(100000000) + 0.01
+}
+
 function update_visualization(data) {
   myGlobe
     .pointsData(data.features)
     .pointAltitude(
-      ({properties: d}) => Math.log10(d.NEW_CASES + 1)/ Math.log10(100000000) + 0.01
+      ({properties: d}) => { return altituteConversion(d.NEW_CASES); }
     );
 }
 
 function create_visualization(data) {
-
   myGlobe = Globe()
     .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
     .pointsData(data.features)
     .pointAltitude(
-      ({properties: d}) => Math.log10(d.NEW_CASES + 1)/ Math.log10(100000000) + 0.01
+      ({properties: d}) => { return altituteConversion(d.NEW_CASES); }
     )
     .pointColor(({ properties: d }) => {
       let color = colorCodes[d.ISO];
@@ -59,6 +63,7 @@ function create_visualization(data) {
 }
 
 
+// Map each country centroid with the covid data for a specific date
 function process_data_by_date(date) {
   covid_data_filtered = covid_data.filter((el) => el.Date_reported == date);
 
