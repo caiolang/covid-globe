@@ -11,23 +11,44 @@ let ctx = {
   minDate: "",
   maxDate: "",
   myGlobe: {},
+  timelineInterval: {},
+  timelineRunning: false,
   THRESHOLD: 0.1,
+  TIME_INTERVAL: 1000,
 };
 
+const startTimeline = () => {
+  if (ctx.allDates.length > ctx.currDateIdx) {
+    // Update date
+    ctx.date = ctx.allDates[ctx.currDateIdx];
+    // console.log(ctx.date);
+    // Set the current date no the date input
+    dateInput.value = ctx.date;
+    // Increment date index
+    ctx.currDateIdx += 1;
+    // Update vis with new date
+    updateVis();
+  }
+};
+
+function resetDate() {
+  ctx.currDateIdx = 0;
+  // Initial date is the minDate
+  ctx.date = ctx.minDate;
+  // Set the date selector with the minDate
+  dateInput.value = ctx.date;
+}
+
 timelineBtn.onclick = () => {
-  setInterval(() => {
-    if (ctx.allDates.length > ctx.currDateIdx) {
-      // Update date
-      ctx.date = ctx.allDates[ctx.currDateIdx];
-      // console.log(ctx.date);
-      // Set the current date no the date input
-      dateInput.value = ctx.date;
-      // Increment date index
-      ctx.currDateIdx += 1;
-      // Update vis with new date
-      updateVis();
-    }
-  }, 2000);
+  if (ctx.timelineRunning) {
+    clearInterval(ctx.timelineInterval);
+    timelineBtn.innerHTML = "Reset/Play";
+  } else {
+    ctx.timelineInterval = setInterval(startTimeline, ctx.TIME_INTERVAL);
+    resetDate();
+    timelineBtn.innerHTML = "Stop";
+  }
+  ctx.timelineRunning = !ctx.timelineRunning;
 };
 
 const dateToString = (date) => {
@@ -216,11 +237,7 @@ function init() {
       return a > b ? a : b;
     });
 
-    // Initial date is the minDate
-    ctx.date = ctx.minDate;
-
-    // Set the date selector with the minDate
-    dateInput.value = ctx.date;
+    resetDate();
 
     // Set the globe object with the background image
     ctx.myGlobe = Globe().globeImageUrl(
