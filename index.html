@@ -5,34 +5,23 @@
     }
   </style>
 
+  <script src="//unpkg.com/d3"></script>
+
   <script src="//unpkg.com/globe.gl"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
   <!--<script src="../../dist/globe.gl.js"></script>-->
 </head>
 
 <body>
+  <button id="timeline-btn">See data through time</button>
+  <input type="date" id="date_input" />
+  <select id="metric_option">
+    <option value="CUMULATIVE_CASES" default>Cumulative cases</option>
+    <option value="CUMULATIVE_DEATHS">Cumulative deaths</option>
+    <option value="NEW_CASES">New cases</option>
+    <option value="NEW_DEATHS">New deaths</option>
+  </select>
   <div id="globeViz"></div>
-
-  <script>
-    fetch("./datasets/ne_110m_admin_0_countries.geojson")
-      .then((res) => res.json())
-      .then((countries) => {
-        const world = Globe()
-          .globeImageUrl("//unpkg.com/three-globe/example/img/earth-dark.jpg")
-          .hexPolygonsData(countries.features)
-          .hexPolygonResolution(3)
-          .hexPolygonMargin(0.3)
-          .hexPolygonColor(
-            () =>
-              `#${Math.round(Math.random() * Math.pow(2, 24))
-                .toString(16)
-                .padStart(6, "0")}`
-          )
-          .hexPolygonLabel(
-            ({ properties: d }) => `
-            <b>${d.ADMIN} (${d.ISO_A2})</b> <br />
-            Population: <i>${d.POP_EST}</i>
-          `
-          )(document.getElementById("globeViz"));
-      });
-  </script>
+  <!-- <script src="earthquakes.js" type="text/javascript"></script> -->
+  <script src="countries.js" type="text/javascript"></script>
 </body>
