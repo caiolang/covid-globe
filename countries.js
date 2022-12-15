@@ -11,22 +11,44 @@ let ctx = {
   minDate: "",
   maxDate: "",
   myGlobe: {},
+  timelineInterval: {},
+  timelineRunning: false,
+  THRESHOLD: 0.1,
+  TIME_INTERVAL: 1000,
 };
 
+const startTimeline = () => {
+  if (ctx.allDates.length > ctx.currDateIdx) {
+    // Update date
+    ctx.date = ctx.allDates[ctx.currDateIdx];
+    // console.log(ctx.date);
+    // Set the current date no the date input
+    dateInput.value = ctx.date;
+    // Increment date index
+    ctx.currDateIdx += 1;
+    // Update vis with new date
+    updateVis();
+  }
+};
+
+function resetDate() {
+  ctx.currDateIdx = 0;
+  // Initial date is the minDate
+  ctx.date = ctx.minDate;
+  // Set the date selector with the minDate
+  dateInput.value = ctx.date;
+}
+
 timelineBtn.onclick = () => {
-  setInterval(() => {
-    if (ctx.allDates.length > ctx.currDateIdx) {
-      // Update date
-      ctx.date = ctx.allDates[ctx.currDateIdx];
-      console.log(ctx.date);
-      // Set the current date no the date input
-      dateInput.value = ctx.date;
-      // Increment date index
-      ctx.currDateIdx += 1;
-      // Update vis with new date
-      updateVis();
-    }
-  }, 2000);
+  if (ctx.timelineRunning) {
+    clearInterval(ctx.timelineInterval);
+    timelineBtn.innerHTML = "Reset/Play";
+  } else {
+    ctx.timelineInterval = setInterval(startTimeline, ctx.TIME_INTERVAL);
+    resetDate();
+    timelineBtn.innerHTML = "Stop";
+  }
+  ctx.timelineRunning = !ctx.timelineRunning;
 };
 
 const dateToString = (date) => {
@@ -46,7 +68,6 @@ fetch("./datasets/colors.json")
     colorCodes = colors;
   });
 
-//TODO: Maybe change this to a more interpretable one
 function altituteConversion(altitude) {
   return Math.log10(altitude + 1) / Math.log10(100000000) + 0.01;
 }
@@ -63,7 +84,6 @@ function updateVis() {
   ctx.myGlobe
     .pointsData(countriesData.features)
     .pointAltitude(({ properties: d }) => {
-      // console.log(d.data)
       if (d.data !== undefined && date in d.data) {
         return altituteConversion(d.data[date][metric]);
       } else if (
@@ -84,17 +104,41 @@ function updateVis() {
       }
     })
     .pointColor(({ properties: d }) => {
-      //TODO: Define color behavior (based on daily change in the metric ?);
-      let color = colorCodes[d.ISO];
-      if (color === undefined) {
-        return undefined;
+      color = "grey";
+
+      let currIndex = ctx.allDates.findIndex((el) => el === date);
+      let pastDate = ctx.allDates[currIndex - 1];
+      if (pastDate < 0) pastDate = 0;
+
+      // Middle month
+      if (d.data !== undefined && date in d.data && currIndex > 0) {
+        let currData = d.data[date][metric];
+        let pastData = d.data[pastDate][metric];
+
+        if (Math.abs((currData - pastData) / currData) < ctx.THRESHOLD) {
+          color = "cyan";
+        } else if (currData > pastData) {
+          color = "red";
+        } else if (currData < pastData) {
+          color = "green";
+        }
+        // First month
+      } else if (d.data !== undefined && currIndex === 0) {
+        let currData = d.data[date][metric];
+        if (currData > 0) {
+          color = "red";
+        } else {
+          color = "cyan";
+        }
       }
-      if (d.data !== undefined && date in d.data) {
-        color = `${color.slice(0, -2)}${percentToHex(
-          d.data[date].NEW_CASES ? 100 : 20
-        )}`;
-      } else {
-        color = "red";
+
+      // Last month OR Date before minDate
+      if (
+        currIndex === ctx.allDates.length - 1 ||
+        d.data === undefined ||
+        new Date(date) < new Date(ctx.minDate)
+      ) {
+        color = "grey";
       }
 
       return color;
@@ -199,11 +243,7 @@ function init() {
       return a > b ? a : b;
     });
 
-    // Initial date is the minDate
-    ctx.date = ctx.minDate;
-
-    // Set the date selector with the minDate
-    dateInput.value = ctx.date;
+    resetDate();
 
     // Set the globe object with the background image
     ctx.myGlobe = Globe().globeImageUrl(
