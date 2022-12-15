@@ -15,10 +15,14 @@ let ctx = {
 
 timelineBtn.onclick = () => {
   setInterval(() => {
+    // Update date
     ctx.date = dateToString(ctx.allDates[ctx.currDateIdx]);
-    // console.log(ctx.date);
+    console.log(ctx.date);
+    // Set the current date no the date input
     dateInput.value = ctx.date;
+    // Increment date index
     ctx.currDateIdx += 1;
+    // Update vis with new date
     updateVis();
   }, 800);
 };
@@ -105,41 +109,39 @@ function updateVis() {
 }
 
 function init() {
-  countries_centroid_promise = d3.json(
-    "./datasets/countries_centroids.geojson"
-  );
-  covid_data_promise = d3.csv("./datasets/WHO-COVID-19-global-data.csv");
-  // covid_data_promise = d3.csv('https://covid19.who.int/WHO-COVID-19-global-data.csv');
+  contriesCentroidPromise = d3.json("./datasets/countries_centroids.geojson");
+  covidDataPromise = d3.csv("./datasets/WHO-COVID-19-global-data.csv");
+  // covidDataPromise = d3.csv('https://covid19.who.int/WHO-COVID-19-global-data.csv');
 
-  Promise.all([countries_centroid_promise, covid_data_promise]).then((data) => {
+  Promise.all([contriesCentroidPromise, covidDataPromise]).then((data) => {
     countriesCovid = data[0];
-    covid_data = data[1];
+    covidData = data[1];
 
     // Map each country code to a date->value dictionary
-    country_covid = {};
-    covid_data.forEach((row) => {
-      if (!(row.Country_code in country_covid)) {
-        country_covid[row.Country_code] = {};
-        country_covid[row.Country_code].cumulative_cases_max = 0;
-        country_covid[row.Country_code].cumulative_deaths_max = 0;
+    countryCovid = {};
+    covidData.forEach((row) => {
+      if (!(row.Country_code in countryCovid)) {
+        countryCovid[row.Country_code] = {};
+        countryCovid[row.Country_code].cumulative_cases_max = 0;
+        countryCovid[row.Country_code].cumulative_deaths_max = 0;
       }
-      country_covid[row.Country_code][row.Date_reported] = new Object();
-      country_covid[row.Country_code][row.Date_reported].NEW_CASES =
+      countryCovid[row.Country_code][row.Date_reported] = new Object();
+      countryCovid[row.Country_code][row.Date_reported].NEW_CASES =
         row.New_cases;
-      country_covid[row.Country_code][row.Date_reported].CUMULATIVE_CASES =
+      countryCovid[row.Country_code][row.Date_reported].CUMULATIVE_CASES =
         row.Cumulative_cases;
-      country_covid[row.Country_code][row.Date_reported].NEW_DEATHS =
+      countryCovid[row.Country_code][row.Date_reported].NEW_DEATHS =
         row.New_deaths;
-      country_covid[row.Country_code][row.Date_reported].CUMULATIVE_DEATHS =
+      countryCovid[row.Country_code][row.Date_reported].CUMULATIVE_DEATHS =
         row.Cumulative_deaths;
 
-      country_covid[row.Country_code].cumulative_cases_max = Math.max(
-        country_covid[row.Country_code].cumulative_cases_max,
+      countryCovid[row.Country_code].cumulative_cases_max = Math.max(
+        countryCovid[row.Country_code].cumulative_cases_max,
         row.Cumulative_cases
       );
 
-      country_covid[row.Country_code].cumulative_deaths_max = Math.max(
-        country_covid[row.Country_code].cumulative_deaths_max,
+      countryCovid[row.Country_code].cumulative_deaths_max = Math.max(
+        countryCovid[row.Country_code].cumulative_deaths_max,
         row.Cumulative_deaths
       );
     });
@@ -148,13 +150,13 @@ function init() {
       country.lng = country.geometry.coordinates[0];
       country.lat = country.geometry.coordinates[1];
 
-      country.properties.data = country_covid[country.properties.ISO];
+      country.properties.data = countryCovid[country.properties.ISO];
 
       return country;
     });
 
     // Get all abailable dates
-    ctx.allDates = covid_data
+    ctx.allDates = covidData
       .map((el) => {
         return new Date(el.Date_reported);
       })
