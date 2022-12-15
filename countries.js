@@ -73,7 +73,13 @@ function altituteConversion(altitude) {
 }
 
 function updateVis() {
-  date = dateInput.value;
+  date = dateInput.value;  
+
+  // Small date validation, required for firefox users
+  if (!date.match('[0-9]{4}-[0-9]{2}') || parseInt(date.split('-')[2]) > 12 || parseInt(date.split('-')[2]) < 1) {
+    return;
+  }
+
   metric = metricOption.value;
   ctx.myGlobe
     .pointsData(countriesData.features)
@@ -250,3 +256,10 @@ function init() {
 window.addEventListener("load", init);
 dateInput.addEventListener("input", updateVis);
 metricOption.addEventListener("input", updateVis);
+
+// Enable popovers
+var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+  return new bootstrap.Popover(popoverTriggerEl)
+})
+
