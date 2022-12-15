@@ -3,6 +3,42 @@
     body {
       margin: 0;
     }
+
+    #date_input {
+      position: absolute;
+      z-index: 2;
+      bottom: 1rem;
+      left: 2rem;
+      width: 14rem;
+    }
+
+    #metric_option {
+      position: absolute;
+      z-index: 2;
+      bottom: 1rem;
+      left: 18rem;
+      width: 18rem;
+    }
+
+    #timeline-btn {
+      position: absolute;
+      z-index: 2;
+      bottom: 1rem;
+      left: 36rem;
+      width: 24rem;
+    }
+
+    .input_style {
+      color: gray;
+      font-size: 30px;
+      height: 1.5em;
+      background-color: transparent;
+      border: 0;
+    }
+
+    .input_style:hover {
+      color: lightgray;
+    }
   </style>
 
   <script src="//unpkg.com/d3"></script>
@@ -13,9 +49,9 @@
 </head>
 
 <body>
-  <button id="timeline-btn">See data through time</button>
-  <input type="month" id="date_input" />
-  <select id="metric_option">
+  <button id="timeline-btn" class="input_style">See data through time</button>
+  <input type="month" id="date_input" class="input_style"/>
+  <select id="metric_option" class="input_style">
     <option value="NEW_CASES" default>New cases</option>
     <option value="NEW_DEATHS">New deaths</option>
     <option value="CUMULATIVE_CASES">Cumulative cases</option>
