@@ -88,8 +88,6 @@ function process_data_by_date(date) {
     return country;
   });
 
-  console.log(countries_covid)
-
   return countries_covid;
 }
 
@@ -113,9 +111,6 @@ function init() {
       // let dates = covid_data.map((el) => { return new Date(el.Date_reported); }).filter((value) => value instanceof Date && isFinite(value));
       // let minDate = new Date(Math.min.apply(null, dates));
       // let maxDate = new Date(Math.max.apply(null, dates));
-      // console.log(dates);
-      // console.log(minDate)
-      // console.log(maxDate);
       // date_input.value = date;
       // date_input.max = `${maxDate.getFullYear()}-${maxDate.getMonth() + 1}-${maxDate.getDay()}`;
       // date_input.min = `${minDate.getFullYear()}-${minDate.getMonth() + 1}-${minDate.getDay()}`;
