@@ -77,13 +77,19 @@ function process_data_by_date(date) {
       country.properties.CUMULATIVE_DEATHS = value.Cumulative_deaths
     }
     else {
-      return undefined
+      // Here is for dates that aren't defiend on the dataset
+      // TODO: Get cumulative cases for dates after the maxDate ? 
+      country.properties.NEW_CASES = 0
+      country.properties.CUMULATIVE_CASES = 0
+      country.properties.NEW_DEATHS = 0
+      country.properties.CUMULATIVE_DEATHS = 0
     }
 
-    return country
+    return country;
   });
 
-  countries_covid.features = countries_covid.features.filter((v) => { return v !== undefined; });
+  console.log(countries_covid)
+
   return countries_covid;
 }
 
@@ -104,8 +110,18 @@ function init() {
       })
 
       let date = '2021-01-03';
+      // let dates = covid_data.map((el) => { return new Date(el.Date_reported); }).filter((value) => value instanceof Date && isFinite(value));
+      // let minDate = new Date(Math.min.apply(null, dates));
+      // let maxDate = new Date(Math.max.apply(null, dates));
+      // console.log(dates);
+      // console.log(minDate)
+      // console.log(maxDate);
+      // date_input.value = date;
+      // date_input.max = `${maxDate.getFullYear()}-${maxDate.getMonth() + 1}-${maxDate.getDay()}`;
+      // date_input.min = `${minDate.getFullYear()}-${minDate.getMonth() + 1}-${minDate.getDay()}`;
+
       countries_covid = process_data_by_date(date);
-      create_visualization(countries_covid)
+      create_visualization(countries_covid);
 
     })
 }
