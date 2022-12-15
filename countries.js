@@ -1,26 +1,30 @@
-let myGlobe;
-let btn = document.getElementById("btn");
-let date_input = document.getElementById("date_input");
-let metric_option = document.getElementById("metric_option");
+let timelineBtn = document.getElementById("timeline-btn");
+let dateInput = document.getElementById("date_input");
+let metricOption = document.getElementById("metric_option");
 let colorCodes;
-let countries_covid;
-let maxDate;
-let minDate;
+let countriesCovid;
 
-btn.onclick = () => {
-  myGlobe
-    .pointAltitude(
-      ({ properties: d }) =>
-        Math.log10(d.NEW_CASES + 1) / Math.log10(100000000) + 0.01
-    )
-    .pointColor(({ properties: d }) => {
-      let color = colorCodes[d.ISO];
-      if (color === undefined) {
-        return undefined;
-      }
-      color = `${color.slice(0, -2)}${percentToHex(d.NEW_CASES ? 100 : 20)}`;
-      return color;
-    });
+let ctx = {
+  allDates: [],
+  currDateIdx: 0,
+  date: "2021-01-03",
+  minDate: "",
+  maxDate: "",
+  myGlobe: {},
+};
+
+timelineBtn.onclick = () => {
+  setInterval(() => {
+    ctx.date = dateToString(ctx.allDates[ctx.currDateIdx]);
+    // console.log(ctx.date);
+    dateInput.value = ctx.date;
+    ctx.currDateIdx += 1;
+    updateVis();
+  }, 800);
+};
+
+const dateToString = (date) => {
+  return date.toISOString().split("T")[0];
 };
 
 const percentToHex = (p) => {
@@ -41,16 +45,19 @@ function altituteConversion(altitude) {
   return Math.log10(altitude + 1) / Math.log10(100000000) + 0.01;
 }
 
-function update_visualization() {
-  date = date_input.value;
-  metric = metric_option.value;
-  myGlobe
-    .pointsData(countries_covid.features)
+function updateVis() {
+  date = dateInput.value;
+  metric = metricOption.value;
+  ctx.myGlobe
+    .pointsData(countriesCovid.features)
     .pointAltitude(({ properties: d }) => {
       // console.log(d.data)
       if (d.data !== undefined && date in d.data) {
         return altituteConversion(d.data[date][metric]);
-      } else if (d.data === undefined || new Date(date) < new Date(minDate)) {
+      } else if (
+        d.data === undefined ||
+        new Date(date) < new Date(ctx.minDate)
+      ) {
         return altituteConversion(0);
       } else {
         if (metric === "CUMULATIVE_CASES" || metric === "CUMULATIVE_DEATHS") {
@@ -84,7 +91,10 @@ function update_visualization() {
       if (d.data !== undefined && date in d.data) {
         return `Country: ${d.COUNTRY}\nNew cases: ${d.data[date].NEW_CASES}\nCumulative cases: ${d.data[date].CUMULATIVE_CASES}\n
         New deaths: ${d.data[date].NEW_DEATHS}\nCumulative deaths: ${d.data[date].CUMULATIVE_DEATHS}`;
-      } else if (d.data === undefined || new Date(date) < new Date(minDate)) {
+      } else if (
+        d.data === undefined ||
+        new Date(date) < new Date(ctx.minDate)
+      ) {
         return `Country: ${d.COUNTRY}\nNew cases: 0\nCumulative cases: 0\n
         New deaths: 0\nCumulative deaths: 0`;
       } else {
@@ -102,7 +112,7 @@ function init() {
   // covid_data_promise = d3.csv('https://covid19.who.int/WHO-COVID-19-global-data.csv');
 
   Promise.all([countries_centroid_promise, covid_data_promise]).then((data) => {
-    countries_covid = data[0];
+    countriesCovid = data[0];
     covid_data = data[1];
 
     // Map each country code to a date->value dictionary
@@ -134,7 +144,7 @@ function init() {
       );
     });
 
-    countries_covid.features.map(function (country) {
+    countriesCovid.features.map(function (country) {
       country.lng = country.geometry.coordinates[0];
       country.lat = country.geometry.coordinates[1];
 
@@ -143,32 +153,35 @@ function init() {
       return country;
     });
 
-    // console.log(country_covid);
-
-    let date = "2021-01-03";
-    let dates = covid_data
+    // Get all abailable dates
+    ctx.allDates = covid_data
       .map((el) => {
         return new Date(el.Date_reported);
       })
       .filter((value) => value instanceof Date && isFinite(value));
-    minDate = dates.reduce(function (a, b) {
+
+    // Get oldest and most recent dates with available data
+    ctx.minDate = ctx.allDates.reduce(function (a, b) {
       return a < b ? a : b;
     });
-    maxDate = dates.reduce(function (a, b) {
+    ctx.maxDate = ctx.allDates.reduce(function (a, b) {
       return a > b ? a : b;
     });
-    date_input.value = date;
-    // date_input.max = maxDate;
-    // date_input.min = minDate;
 
-    // countries_covid = process_data_by_date(date);
-    myGlobe = Globe().globeImageUrl(
+    // Initial date is the minDate
+    ctx.date = dateToString(ctx.minDate);
+
+    // Set the date selector with the minDate
+    dateInput.value = ctx.date;
+
+    // Set the globe object with the background image
+    ctx.myGlobe = Globe().globeImageUrl(
       "//unpkg.com/three-globe/example/img/earth-night.jpg"
     )(document.getElementById("globeViz"));
-    update_visualization();
+    updateVis();
   });
 }
 
 window.addEventListener("load", init);
-date_input.addEventListener("input", update_visualization);
-metric_option.addEventListener("input", update_visualization);
+dateInput.addEventListener("input", updateVis);
+metricOption.addEventListener("input", updateVis);
