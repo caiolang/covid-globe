@@ -1,9 +1,11 @@
 let myGlobe;
 let btn = document.getElementById("btn");
 let date_input = document.getElementById('date_input');
+let metric_option = document.getElementById('metric_option');
 let colorCodes;
-let countries_centroids;
-let covid_data;
+let countries_covid;
+let maxDate;
+let minDate;
 
 btn.onclick = () => {
   myGlobe
@@ -36,93 +38,123 @@ function altituteConversion(altitude) {
   return Math.log10(altitude + 1)/ Math.log10(100000000) + 0.01
 }
 
-function update_visualization(data) {
+function update_visualization() {
+  date = date_input.value;
+  metric = metric_option.value;
   myGlobe
-    .pointsData(data.features)
+    .pointsData(countries_covid.features)
     .pointAltitude(
-      ({properties: d}) => { return altituteConversion(d.NEW_CASES); }
-    );
-}
-
-function create_visualization(data) {
-  myGlobe = Globe()
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-    .pointsData(data.features)
-    .pointAltitude(
-      ({properties: d}) => { return altituteConversion(d.NEW_CASES); }
+      ({properties: d}) => { 
+        // console.log(d.data)
+        if (d.data !== undefined && date in d.data){
+          return altituteConversion(d.data[date][metric]);
+        }
+        else if (d.data === undefined || new Date(date) < new Date(minDate)) {
+          return altituteConversion(0);
+        }
+        else {
+          if (metric === "CUMULATIVE_CASES" || metric === "CUMULATIVE_DEATHS") {
+            return altituteConversion(metric === "CUMULATIVE_CASES" ? d.data.cumulative_cases_max : d.data.cumulative_deaths_max);
+          }
+          else {
+            return altituteConversion(0);
+          }
+        }
+      }
     )
     .pointColor(({ properties: d }) => {
+      //TODO: Define color behavior (based on daily change in the metric ?);
       let color = colorCodes[d.ISO];
       if (color === undefined) { return undefined; }
-      color = `${color.slice(0, -2)}${percentToHex(d.NEW_CASES ? 100 : 20)}`;
+      if (d.data !== undefined && date in d.data) {
+        color = `${color.slice(0, -2)}${percentToHex(d.data[date].NEW_CASES ? 100 : 20)}`;
+      }
+      else {
+        color = 'red';
+      }
+      
       return color;
     })
-    .pointLabel(({ properties: d}) => `Country: ${d.COUNTRY}\nNew cases: ${d.NEW_CASES}\nCumulative cases: ${d.CUMULATIVE_CASES}\n
-      New deaths: ${d.NEW_DEATHS}\nCumulative deaths: ${d.CUMULATIVE_DEATHS}`)
-    (document.getElementById("globeViz"));;
-}
-
-
-// Map each country centroid with the covid data for a specific date
-function process_data_by_date(date) {
-  covid_data_filtered = covid_data.filter((el) => el.Date_reported == date);
-
-  countries_covid = countries_centroids
-  countries_covid.features = countries_covid.features.map(function(country) {
-    let value = covid_data_filtered.find((v) => v.Country_code == country.properties.ISO)
-    if (value !== undefined) {
-      country.properties.NEW_CASES = value.New_cases
-      country.properties.CUMULATIVE_CASES = value.Cumulative_cases
-      country.properties.NEW_DEATHS = value.New_deaths
-      country.properties.CUMULATIVE_DEATHS = value.Cumulative_deaths
-    }
-    else {
-      // Here is for dates that aren't defiend on the dataset
-      // TODO: Get cumulative cases for dates after the maxDate ? 
-      country.properties.NEW_CASES = 0
-      country.properties.CUMULATIVE_CASES = 0
-      country.properties.NEW_DEATHS = 0
-      country.properties.CUMULATIVE_DEATHS = 0
-    }
-
-    return country;
-  });
-
-  return countries_covid;
+    .pointLabel(({ properties: d}) => {
+      if (d.data !== undefined && date in d.data) {
+        return `Country: ${d.COUNTRY}\nNew cases: ${d.data[date].NEW_CASES}\nCumulative cases: ${d.data[date].CUMULATIVE_CASES}\n
+        New deaths: ${d.data[date].NEW_DEATHS}\nCumulative deaths: ${d.data[date].CUMULATIVE_DEATHS}`;
+      }
+      else if (d.data === undefined || new Date(date) < new Date(minDate)) {
+        return `Country: ${d.COUNTRY}\nNew cases: 0\nCumulative cases: 0\n
+        New deaths: 0\nCumulative deaths: 0`;
+      }
+      else {
+        return `Country: ${d.COUNTRY}\nNew cases: 0\nCumulative cases: ${d.data.cumulative_cases_max}\n
+        New deaths: 0\nCumulative deaths: ${d.data.cumulative_deaths_max}`;
+      }
+    })
 }
 
 function init() {
-  countries_centroid_promise = d3.json('./datasets/countries_centroids.geojson')
+  countries_centroid_promise = d3.json('./datasets/countries_centroids.geojson');
   covid_data_promise = d3.csv('./datasets/WHO-COVID-19-global-data.csv')
+  // covid_data_promise = d3.csv('https://covid19.who.int/WHO-COVID-19-global-data.csv');
 
   Promise.all([countries_centroid_promise, covid_data_promise])
     .then((data) => {
-      countries_centroids = data[0]
+      countries_covid = data[0]
       covid_data = data[1]
 
-      countries_centroids.features.map(function(country) {
+      // Map each country code to a date->value dictionary
+      country_covid = {};
+      covid_data.forEach((row) => {
+        if (!(row.Country_code in country_covid)) {
+          country_covid[row.Country_code] = {};
+          country_covid[row.Country_code].cumulative_cases_max = 0;
+          country_covid[row.Country_code].cumulative_deaths_max = 0;
+        }
+        country_covid[row.Country_code][row.Date_reported] = new Object();
+        country_covid[row.Country_code][row.Date_reported].NEW_CASES = row.New_cases;
+        country_covid[row.Country_code][row.Date_reported].CUMULATIVE_CASES = row.Cumulative_cases;
+        country_covid[row.Country_code][row.Date_reported].NEW_DEATHS = row.New_deaths;
+        country_covid[row.Country_code][row.Date_reported].CUMULATIVE_DEATHS = row.Cumulative_deaths;
+
+        country_covid[row.Country_code].cumulative_cases_max = 
+          Math.max(country_covid[row.Country_code].cumulative_cases_max, row.Cumulative_cases);
+
+          country_covid[row.Country_code].cumulative_deaths_max = 
+          Math.max(country_covid[row.Country_code].cumulative_deaths_max, row.Cumulative_deaths);
+      })
+
+      countries_covid.features.map(function(country) {
         country.lng = country.geometry.coordinates[0]
         country.lat = country.geometry.coordinates[1]
+
+        country.properties.data = country_covid[country.properties.ISO];
 
         return country
       })
 
-      let date = '2021-01-03';
-      // let dates = covid_data.map((el) => { return new Date(el.Date_reported); }).filter((value) => value instanceof Date && isFinite(value));
-      // let minDate = new Date(Math.min.apply(null, dates));
-      // let maxDate = new Date(Math.max.apply(null, dates));
-      // date_input.value = date;
-      // date_input.max = `${maxDate.getFullYear()}-${maxDate.getMonth() + 1}-${maxDate.getDay()}`;
-      // date_input.min = `${minDate.getFullYear()}-${minDate.getMonth() + 1}-${minDate.getDay()}`;
+      // console.log(country_covid);
 
-      countries_covid = process_data_by_date(date);
-      create_visualization(countries_covid);
+      let date = '2021-01-03';
+      let dates = covid_data.map((el) => { return new Date(el.Date_reported); }).filter((value) => value instanceof Date && isFinite(value));
+      minDate = new Date(Math.min.apply(null, dates));
+      minDate = `${minDate.getFullYear()}-${minDate.getMonth() + 1}-${minDate.getDay()}`;
+      maxDate = new Date(Math.max.apply(null, dates));
+      maxDate = `${maxDate.getFullYear()}-${maxDate.getMonth() + 1}-${maxDate.getDay()}`;
+      date_input.value = date;
+      // date_input.max = maxDate;
+      // date_input.min = minDate;
+
+      // countries_covid = process_data_by_date(date);
+      myGlobe = Globe()
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+        (document.getElementById("globeViz"))
+      update_visualization();
 
     })
 }
 
 window.addEventListener('load', init);
-date_input.addEventListener('input', (e) => update_visualization(process_data_by_date(e.target.value)))
+date_input.addEventListener('input', update_visualization);
+metric_option.addEventListener('input', update_visualization);
 
 
 
