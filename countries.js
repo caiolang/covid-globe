@@ -151,14 +151,12 @@ function init() {
         return new Date(el.Date_reported);
       })
       .filter((value) => value instanceof Date && isFinite(value));
-    minDate = new Date(Math.min.apply(null, dates));
-    minDate = `${minDate.getFullYear()}-${
-      minDate.getMonth() + 1
-    }-${minDate.getDay()}`;
-    maxDate = new Date(Math.max.apply(null, dates));
-    maxDate = `${maxDate.getFullYear()}-${
-      maxDate.getMonth() + 1
-    }-${maxDate.getDay()}`;
+    minDate = dates.reduce(function (a, b) {
+      return a < b ? a : b;
+    });
+    maxDate = dates.reduce(function (a, b) {
+      return a > b ? a : b;
+    });
     date_input.value = date;
     // date_input.max = maxDate;
     // date_input.min = minDate;
