@@ -11,6 +11,7 @@ let ctx = {
   minDate: "",
   maxDate: "",
   myGlobe: {},
+  THRESHOLD: 0.1,
 };
 
 timelineBtn.onclick = () => {
@@ -18,7 +19,7 @@ timelineBtn.onclick = () => {
     if (ctx.allDates.length > ctx.currDateIdx) {
       // Update date
       ctx.date = ctx.allDates[ctx.currDateIdx];
-      console.log(ctx.date);
+      // console.log(ctx.date);
       // Set the current date no the date input
       dateInput.value = ctx.date;
       // Increment date index
@@ -46,7 +47,6 @@ fetch("./datasets/colors.json")
     colorCodes = colors;
   });
 
-//TODO: Maybe change this to a more interpretable one
 function altituteConversion(altitude) {
   return Math.log10(altitude + 1) / Math.log10(100000000) + 0.01;
 }
@@ -57,7 +57,6 @@ function updateVis() {
   ctx.myGlobe
     .pointsData(countriesData.features)
     .pointAltitude(({ properties: d }) => {
-      // console.log(d.data)
       if (d.data !== undefined && date in d.data) {
         return altituteConversion(d.data[date][metric]);
       } else if (
@@ -78,17 +77,41 @@ function updateVis() {
       }
     })
     .pointColor(({ properties: d }) => {
-      //TODO: Define color behavior (based on daily change in the metric ?);
-      let color = colorCodes[d.ISO];
-      if (color === undefined) {
-        return undefined;
+      color = "grey";
+
+      let currIndex = ctx.allDates.findIndex((el) => el === date);
+      let pastDate = ctx.allDates[currIndex - 1];
+      if (pastDate < 0) pastDate = 0;
+
+      // Middle month
+      if (d.data !== undefined && date in d.data && currIndex > 0) {
+        let currData = d.data[date][metric];
+        let pastData = d.data[pastDate][metric];
+
+        if (Math.abs((currData - pastData) / currData) < ctx.THRESHOLD) {
+          color = "cyan";
+        } else if (currData > pastData) {
+          color = "red";
+        } else if (currData < pastData) {
+          color = "green";
+        }
+        // First month
+      } else if (d.data !== undefined && currIndex === 0) {
+        let currData = d.data[date][metric];
+        if (currData > 0) {
+          color = "red";
+        } else {
+          color = "cyan";
+        }
       }
-      if (d.data !== undefined && date in d.data) {
-        color = `${color.slice(0, -2)}${percentToHex(
-          d.data[date].NEW_CASES ? 100 : 20
-        )}`;
-      } else {
-        color = "red";
+
+      // Last month OR Date before minDate
+      if (
+        currIndex === ctx.allDates.length - 1 ||
+        d.data === undefined ||
+        new Date(date) < new Date(ctx.minDate)
+      ) {
+        color = "grey";
       }
 
       return color;
