@@ -12,7 +12,7 @@ This is the final project of the Data Visualization class, taught by [Emmanuel P
 We have used the World Health Organization - WHO - [Covid-19 dataset](https://covid19.who.int/) for this project.
 
 ## How to read it
-- The **length** of each column encodes the selected metric (New cases, New deaths, Cumulated cases or Cumulated deaths) following a linear scale.
+- The **length** of each column encodes the selected metric (New cases, New deaths, Cumulated cases or Cumulated deaths) following a logarithmic scale.
 
 - The columns' **color** indicates the recent variability of the metric:
     - **RED** means the metric has worsened (more cases/deaths) in relation to the last month
