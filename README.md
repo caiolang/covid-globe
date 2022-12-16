@@ -1,5 +1,6 @@
 # covid-globe
 Visualization of Covid-19 data using [Globe.GL](https://github.com/vasturiano/globe.gl)
+[Check it out here!](https://www.caiolang.com/covid-globe/index.html)
 
 ![Screenshot of the 3D Covid-19 globe visualization.](./img/screenshot.png)
 
