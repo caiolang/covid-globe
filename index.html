@@ -18,31 +18,70 @@
     .input_container {
       position: absolute;
       z-index: 2;
-      bottom: 1rem;
-      width:100%;
+      bottom: 2rem;
+      width: 100%;
       flex-direction: row;
       justify-content: flex-start;
       padding-left: 2rem;
     }
 
-    #helper_button {
-      position:absolute;
-      right: 1rem;
-    } 
+    h1 {
+      position: absolute;
+      font-family: Helvetica, sans-serif;
+      color: grey;
+      z-index: 2;
+      top: 2rem;
+      flex-direction: row;
+      justify-content: flex-start;
+      padding-left: 2rem;
+    }
 
+    #github-icon {
+      position: absolute;
+      z-index: 2;
+      bottom: 0.2rem;
+      width: 7%;
+      max-width: 90px;
+      min-width: 90px;
+      flex-direction: row;
+      justify-content: flex-start;
+      padding-left: 3rem;
+    }
+
+    #github-icon:hover {
+      opacity: 25%;
+    }
+
+    #helper_button {
+      position: absolute;
+      right: 2rem;
+      bottom: 0.2rem;
+    }
   </style>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+    crossorigin="anonymous"
+  />
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"
+  ></script>
   <script src="//unpkg.com/d3"></script>
   <script src="//unpkg.com/globe.gl"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-  <!--<script src="../../dist/globe.gl.js"></script>-->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"
+  />
 </head>
 
 <body>
+  <h1>Covid-19 Globe</h1>
   <div class="input_container">
-    <input type="month" id="date_input" class="input_style"/>
+    <input type="month" id="date_input" class="input_style" />
     <select id="metric_option" class="input_style">
       <option value="NEW_CASES" default>New cases</option>
       <option value="NEW_DEATHS">New deaths</option>
@@ -50,9 +89,30 @@
       <option value="CUMULATIVE_DEATHS">Cumulative deaths</option>
     </select>
     <button id="timeline-btn" class="input_style">Play</button>
-    <button id="helper_button" type="button" class="input_style" data-bs-toggle="popover" title="Popover title" data-bs-content="And here's some amazing content. It's very engaging. Right?"><i class="bi bi-question-circle"></i></button>
+    <button
+      id="helper_button"
+      type="button"
+      class="input_style"
+      data-bs-toggle="popover"
+      data-bs-html="true"
+      title="How does this work?"
+      data-bs-content="This visualization shows COVID-19 data from the WHO. <br/><br/>The <b>length</b> of each column encodes the selected metric <i>(New cases, New deaths, Cumulated cases or Cumulated deaths)</i>
+      following a linear scale.<br/><br/>The columns' <b>color</b> indicates the recent variability of the metric:<br/><br/>
+      <b>RED</b> means the metric has worsened (more cases/deaths) in relation to the last month, <b>GREEN</b> means it has improved,
+      and <b>CYAN</b> means it has remained stable <i>(considering a threshold of 10% for stability)</i>. <b>GRAY</b> indicates outdated information, or lack of data.<br/><br/>By <a href='https://github.com/caiolang' target='_blank'>Caio Lang</a> and <a href='https://github.com/brunosanches' target='_blank'>Bruno Sanches</a>, 2022."
+    >
+      <i class="bi bi-question-circle"></i>
+    </button>
+    <!-- <svg ></svg> -->
+    <a href="https://github.com/caiolang/covid-globe" target="_blank">
+      <img id="github-icon" src="./github-mark-white.svg" />
+    </a>
   </div>
   <div id="globeViz"></div>
-  <!-- <script src="earthquakes.js" type="text/javascript"></script> -->
   <script src="countries.js" type="text/javascript"></script>
 </body>
+
+<!-- 
+  \item \textbf{Length}: The length of each column encodes the selected metric itselfnew cases, new deaths, cumulated cases and cumulated deaths --, using a linear scale that is relative to the earth's radius on the 3D representation.
+    \item \textbf{Color hue}: The columns' color was used as a channel to encode information on the recent variability of the metric -- \textbf{red} means the metric has worsened (more cases/deaths)  in relation to the last month, \textbf{green} means it has improved, and \textbf{cyan} means it has remained stable (considering a threshold of 10\% for stability).
+ -->
