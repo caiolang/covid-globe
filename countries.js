@@ -56,14 +56,18 @@ const dateToString = (date) => {
 };
 
 function altituteConversion(altitude) {
-  return Math.log10(altitude + 1) / Math.log10(100000000) + 0.01;
+  return (altitude + 1) / 100000 + 0.01;
 }
 
 function updateVis() {
-  date = dateInput.value;  
+  date = dateInput.value;
 
   // Small date validation, required for firefox users
-  if (!date.match('[0-9]{4}-[0-9]{2}') || parseInt(date.split('-')[2]) > 12 || parseInt(date.split('-')[2]) < 1) {
+  if (
+    !date.match("[0-9]{4}-[0-9]{2}") ||
+    parseInt(date.split("-")[2]) > 12 ||
+    parseInt(date.split("-")[2]) < 1
+  ) {
     return;
   }
 
@@ -245,8 +249,9 @@ dateInput.addEventListener("input", updateVis);
 metricOption.addEventListener("input", updateVis);
 
 // Enable popovers
-var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+var popoverTriggerList = [].slice.call(
+  document.querySelectorAll('[data-bs-toggle="popover"]')
+);
 var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-  return new bootstrap.Popover(popoverTriggerEl)
-})
-
+  return new bootstrap.Popover(popoverTriggerEl);
+});
